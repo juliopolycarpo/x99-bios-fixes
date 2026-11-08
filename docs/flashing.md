@@ -1,6 +1,6 @@
 # Before you flash
 
-No image built by this repository has been booted on real hardware. A bad image leaves a board that won't POST. Only flash if you can recover with an external programmer.
+Selected bundles have repeated normal/cold boot and user-reported offline memory-test observations on one MR9A PRO V1.2; comprehensive hardware validation remains incomplete. See [hardware test records](hardware-tests.md) for the exact selections and limits. A bad image leaves a board that won't POST. Only flash if you can recover with an external programmer.
 
 ## 1. Read and keep the original
 

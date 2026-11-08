@@ -18,7 +18,7 @@ Finding confidence is separate from fix confidence. A fix can be locally correct
 
 **Priority** ranks the lead: P1 is the most relevant to the boot and memory failures reported for these boards.
 
-**No patch here has been tested on hardware.** Treat them as candidates.
+**Hardware validation is incomplete.** On one MR9A PRO V1.2, B01-B06 + B02-B03 passed initial normal/cold boots with unchanged user-reported timing. The cumulative bundle adding B05, B10/B11 and R01 passed repeated normal/cold boots and an offline memory test as reported by the user; R01's reporting correction was observed in Linux. Exact cycle/pass counts were not supplied. These results do not establish every exceptional firmware path or repair of the intermittent fault. See [hardware test records](hardware-tests.md); other combinations remain candidates.
 
 ## Defects with a patch
 
@@ -64,10 +64,12 @@ UncoreInitPeim is the memory reference code (MRC). It reads each DIMM's SPD EEPR
 - **B01:** the iMC SMBus reader and writer wait for completion with no bound. A command whose pre-busy wait expires is still issued. A DIMM, or its thermal sensor, that holds the bus hangs the boot with the last checkpoint frozen. The fix gives every wait a 100 ms limit and issues no command after a timeout.
 - **B02:** in the page-select path, an inner three-slot loop reuses the outer DIMM-slot counter, so the detector probes slot 3 instead of 0/1/2. The fix gives the inner loop its own stack slot. It is nine bytes together with B03.
 - **B03:** on Auto, with no DDR4 knowledge retained, the detector can parse page-1 bytes as the SPD header. The fix selects page 0 before discovery, including on Auto. It depends on B02.
-- **B04:** the page-aware accessor updates its page cache before sending the page-select command and ignores a command that didn't take effect. Later successful reads then return wrong-page bytes as valid data. The fix verifies each page change with fresh data and propagates failures. It's a large native batch that grows the module by 3,072 bytes.
+- **B04:** the page-aware accessor updates its page cache before sending the page-select command and ignores a command that didn't take effect. Later successful reads then return wrong-page bytes as valid data. The fix verifies each page change with fresh data and propagates failures. It's a large native batch that grows the module by 3,168 bytes, including the conservative worker guard described below.
 - **B06:** the SPD writer returns success after an ordinary bus error, so a caller that writes four bytes can report success when later reads happen to succeed.
 - **B07:** idle-controller recovery skips retained clock and reset states, and callers ignore initializer errors and carry on into discovery. This is a robustness gap, not a reproduced failure.
 - **B08:** when "Halt on memory training error" is disabled, the nonlocal fatal-error return loses EBX, which changes a real caller's branch. The default setting halts instead, so stock boards don't reach this path.
+
+Both B04 and B07 stop failure/reset continuation unless the active bitmap contains exactly the BSP and the context records no prior remote-worker initialization. A normal worker receive can also clear the shutdown mailbox to zero, so zero is insufficient proof of termination. Uncertain worker state takes the existing terminal halt before reset-capable callbacks, regardless of the training-error halt setting. This intentionally trades recovery in uncertain contexts for a proved failure boundary; healthy initialization retains its existing path. See [memory-guard.md](memory-guard.md) for the reproducible record update and validation.
 
 ### Boot mode, S3 and SMM
 

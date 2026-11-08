@@ -1,4 +1,4 @@
-; MRC checkpoint breadcrumbs for the MR9A UncoreInitPeim (sketch, not booted).
+; MRC checkpoint breadcrumbs for the MR9A UncoreInitPeim (offline, not booted).
 ; Applies on top of B01-B06 + B02-B03; see docs/boot-breadcrumbs.md.
 ;
 ; Intent: keep the last MRC checkpoint of the current boot in upper-bank CMOS,
@@ -21,8 +21,10 @@
 ;   rb  FFE61903  53 bytes  dead NOP run left by the B01-B06 rewrite
 ; ra and rb exist only on top of B01-B06; this patch requires it.
 ;
-; CMOS layout (upper bank, ports 72h/73h, absolute index). TENTATIVE: the AMI
-; CmosManager checksum/token map has not been decoded; see the doc.
+; CMOS layout (upper bank, ports 72h/73h, absolute index, matching CmosPei).
+; The reviewed CmosPei checksum/default/token range is 40h-46h. PlatformEarlyInit
+; enables the upper bank before publishing a PPI required by UncoreInitPeim.
+; These are build-specific observations, not a universal reservation of E0-E9.
 ;   E0     state: A0 | slot<<1 | ended. Any other value = not armed.
 ;   E1-E4  slot 0, E5-E8 slot 1: the packed checkpoint, little-endian
 ;          (location[7:0], location[15:8], minor, major).
@@ -68,6 +70,7 @@ rd:
     ret
 ; slot_base: al = first index of the active slot for state bl.
 slot_base:
+    mov     bh, 4                  ; always store the complete 32-bit value
     mov     al, bl
     and     al, ST_SLOT
     add     al, al
@@ -79,7 +82,7 @@ section ra follows=r0 align=1 vstart=0xffe613a2
 hook:
     mov     dx, [esi+0x62d]         ; original FFE4276C behaviour, with
     mov     eax, edi                ; FFE0BFA0 (out dx, al) inlined:
-    shr     eax, 24                 ; port ctx+62D = major
+    bswap   eax                     ; low byte = major; other bytes are dead
     out     dx, al
     mov     al, BC_STATE            ; bl = state, arming if needed
     call    rd
@@ -104,9 +107,10 @@ hook:
     mov     al, dl
     mov     ah, cl
     call    wr
-    inc     dl
+    inc     edx                     ; indexes E1-E8 cannot carry into DH
     shr     ecx, 8
-    jnz     .store                  ; major is never 0: four bytes written
+    dec     bh
+    jnz     .store                  ; exactly four bytes, including zero majors
     jmp     end_check               ; al = major
     times 88-($-$$) nop
 

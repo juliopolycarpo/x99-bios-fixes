@@ -15,7 +15,7 @@ import zlib
 from dataclasses import dataclass, field
 
 from . import hunks as H
-from .records import Record, SelectionError, boards, resolve
+from .records import Record, SelectionError, boards, included, minimal, resolve
 from .uefi import (CRC32_GUID, FFS_ATTRIB_FIXED, FILE_PAD, LZMA_GUID, SECTION_PE32, SECTION_RAW,
                    SECTION_TE, FirmwareError, FfsFile, Section, Volume, align, compress_like,
                    find_volumes, make_file, section_with_body)
@@ -113,8 +113,7 @@ def match_component(rom: Rom, catalog, board: str, component: dict) -> Match | N
         if current is None:
             continue
         fixed = [rid for rid, (_, hs) in related.items() if H.state(current, hs) == H.FIXED]
-        fixed = [rid for rid in fixed
-                 if not any(rid in catalog[other].data.get("supersedes", []) for other in fixed)]
+        fixed = minimal(catalog, fixed)
         try:
             original = H.apply(current, [h for rid in fixed for h in related[rid][1]], reverse=True)
         except H.HunkError:
@@ -146,7 +145,7 @@ def record_state(rom: Rom, catalog, board: str, record: Record) -> dict:
         if match is None:
             missing.append(component["name"])
             continue
-        states.append("fixed" if record.id in match.fixed else "present")
+        states.append("fixed" if record.id in included(catalog, match.fixed) else "present")
     if missing:
         return dict(state="unknown-build", detail=f"not the {board} original: {', '.join(missing[:4])}")
     if set(states) == {"present"}:
@@ -369,7 +368,7 @@ def carried_fixes(catalog, present: list[str], wanted: set[str]) -> set[str]:
     """Return fixes already in the ROM that stay; superseded ones are replaced."""
     keep = set()
     for rid in present:
-        if any(rid in catalog[w].data.get("supersedes", []) for w in wanted):
+        if any(rid in included(catalog, [w]) - {w} for w in wanted):
             continue
         clash = [w for w in wanted if rid in catalog[w].data.get("conflicts", [])]
         if clash:
@@ -405,11 +404,17 @@ def build(rom: Rom, catalog, ids: list[str], board: str | None = None,
     report = []
     for key, (component, match) in plan.items():
         related = hunks_by_record(catalog, board, key)
-        keep = sorted(carried_fixes(catalog, match.fixed, wanted) | (wanted & set(related)))
+        candidates = carried_fixes(catalog, match.fixed, wanted) | (wanted & set(related))
+        keep = sorted(minimal(catalog, sorted(candidates)))
         result = H.apply(match.original, [h for rid in keep for h in related[rid][1]])
         if len(keep) == 1 and H.sha256(result) != related[keep[0]][0]["result_sha256"]:
             raise SelectionError(f"{component['name']}: result hash differs from the published {keep[0]} result")
         leaf = match.leaf
+        if result == match.current:
+            report.append(dict(component=component["name"], ffs_guid=key[0], patches=keep,
+                               result_sha256=H.sha256(result), file_offset=hex(leaf.file.offset),
+                               file_size_change=0))
+            continue
         body = result
         if component["leaf"] == "acpi-table":
             container, at = leaf.section.body, component.get("table_offset", 0)

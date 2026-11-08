@@ -1,12 +1,13 @@
 import os
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from fakes import (DXE_GUID, NEXT_GUID, FakeCatalog, FakeFirmware, component, hunk, module,
                    record, standard_records)
-from x99fix.records import SelectionError, load_catalog, resolve
+from x99fix.records import Record, SelectionError, load_catalog, resolve
 from x99fix.rom import Rom, build, scan
-from x99fix.uefi import checksum16_ok, find_volumes
+from x99fix.uefi import FirmwareError, checksum16_ok, find_volumes, make_file
 
 
 class FirmwareCase(unittest.TestCase):
@@ -37,6 +38,42 @@ class ScanTests(FirmwareCase):
 
 
 class BuildTests(FirmwareCase):
+    def test_corrupt_unselected_file_prevents_build(self):
+        damaged = bytearray(self.fw.image)
+        file = self.rom.volumes[0].files[0]
+        damaged[file.offset + 16] ^= 1
+        with self.assertRaisesRegex(FirmwareError, "header checksum"):
+            build(Rom(bytes(damaged)), self.catalog, ["PA"], "fake")
+
+    def test_output_is_rejected_if_rebuilt_file_has_a_bad_checksum(self):
+        def damaged_file(header, body):
+            result = bytearray(make_file(header, body))
+            result[16] ^= 1
+            return bytes(result)
+        with patch("x99fix.rom.make_file", side_effect=damaged_file):
+            with self.assertRaisesRegex(FirmwareError, "header checksum"):
+                build(self.rom, self.catalog, ["PA"], "fake")
+
+    def test_subset_of_an_installed_superset_is_fixed_and_a_noop(self):
+        first, _ = build(self.rom, self.catalog, ["PS"], "fake")
+        self.assertEqual(self.states(first)["PA"], "fixed")
+        again, _ = build(Rom(first), self.catalog, ["PA"], "fake")
+        self.assertEqual(again, first)
+        combined, _ = build(self.rom, self.catalog, ["PS", "PB"], "fake")
+        stepped, _ = build(Rom(first), self.catalog, ["PA", "PB"], "fake")
+        self.assertEqual(combined, stepped)
+
+    def test_transitive_supersets_are_applied_once_and_report_all_fixes(self):
+        source = self.catalog["PS"].components("fake")[0]
+        hs = source["hunks"] + [hunk(self.fw.peim, 180, b"\x12")]
+        top = record("PT", [component("Peim", source["ffs_guid"], self.fw.peim, hs)], supersedes=["PS"])
+        self.catalog["PT"] = Record(top)
+        together, _ = build(self.rom, self.catalog, ["PA", "PS", "PT"], "fake")
+        for rid in ("PA", "PS", "PT"):
+            self.assertEqual(self.states(together)[rid], "fixed")
+        again, _ = build(Rom(together), self.catalog, ["PA", "PS"], "fake")
+        self.assertEqual(together, again)
+
     def test_disjoint_patches_compose_in_any_order_and_stepwise(self):
         both, _ = build(self.rom, self.catalog, ["PA", "PB"], "fake")
         reverse, _ = build(self.rom, self.catalog, ["PB", "PA"], "fake")

@@ -70,6 +70,29 @@ def recommended(catalog: dict[str, Record]) -> list[str]:
     return sorted(rid for rid, record in catalog.items() if record.tier == 1)
 
 
+def included(catalog: dict[str, Record], ids) -> set[str]:
+    """Return selected records and every correction they transitively include."""
+    result, pending = set(), list(ids)
+    while pending:
+        rid = pending.pop()
+        if rid not in result:
+            result.add(rid)
+            pending.extend(catalog[rid].data.get("supersedes", []))
+    return result
+
+
+def minimal(catalog: dict[str, Record], ids) -> list[str]:
+    """Keep one application unit per correction, preserving selection order."""
+    chosen = list(dict.fromkeys(ids))
+    covered = set()
+    for rid in chosen:
+        older = included(catalog, catalog[rid].data.get("supersedes", []))
+        if rid in older:
+            raise SelectionError(f"{rid}: circular supersedes relationship")
+        covered.update(older)
+    return [rid for rid in chosen if rid not in covered]
+
+
 def resolve(catalog: dict[str, Record], ids: list[str], board: str,
             allow_hold: bool = False) -> tuple[list[Record], list[str]]:
     """Validate a selection; return (records, notes).
@@ -81,12 +104,11 @@ def resolve(catalog: dict[str, Record], ids: list[str], board: str,
     notes, unknown = [], [rid for rid in ids if rid not in catalog]
     if unknown:
         raise SelectionError(f"patch ids {unknown}: expected one of {sorted(catalog)}")
-    chosen = list(dict.fromkeys(ids))
-    for rid in list(chosen):
-        for older in catalog[rid].data.get("supersedes", []):
-            if older in chosen:
-                chosen.remove(older)
-                notes.append(f"{older} dropped: {rid} already contains it")
+    chosen = minimal(catalog, ids)
+    for older in dict.fromkeys(ids):
+        if older not in chosen:
+            owner = next(rid for rid in chosen if older in included(catalog, [rid]))
+            notes.append(f"{older} dropped: {owner} already contains it")
     for rid in chosen:
         record = catalog[rid]
         clash = [other for other in record.data.get("conflicts", []) if other in chosen]

@@ -1,0 +1,28 @@
+# Initial hardware observations
+
+## MR9A stage 1 — 2026-11-08
+
+- Board: MACHINIST E5-MR9A PRO V1.2, Intel Q87, 64 GB installed as four 16 GB DIMMs.
+- Selected records: **B01-B06 + B02-B03** together. No other corrections were included.
+- The image was built from two matching fresh full-chip reads of that board, then flashed with write verification and a separate exact full-chip readback.
+- The user reports that both normal and cold boots behave normally and boot time is unchanged. Their follow-up qualification is that the patches have not interrupted normal motherboard operation **at least so far**.
+- Three distinct post-flash Linux boots were captured at the first review. Installed DIMM capacity, physical-memory total and PCI inventory matched the baseline; captured EDAC error counters were zero, and the reviewed kernel logs contained no matching machine-check or I/O errors.
+- Kernel MemTotal varied by 16–24 KiB, exactly accounted for by early reserved-memory differences; no DIMM/channel capacity loss was observed.
+
+The applied component SHA-256 was `95a0d4deb0d285ee4ee9ff9f59f9533f9ea14117af27fa0972343e5806a936bd`.
+The board-specific flashed image SHA-256 was `a5bdac305b59216d49ac8aac65a56056242e5fcecdaecf142d8a57d2bdb8f985`.
+
+This is **initial boot-compatibility evidence on one board**. Exact timing and warm/cold cycle counts were not supplied. Before the next firmware experiment, Linux memtester 4.7.1 passed four parallel locked 1 GiB allocations, each with all default patterns for one loop (4 GiB total, about seven minutes). All four processes exited zero; captured EDAC counters remained zero and no matching kernel machine-check/I/O errors appeared during the run. A preceding 32 GiB run was intentionally stopped before completion at the user's request for the smaller screen and is not counted as a completed pass. A four-pass offline Memtest86+ result has not been reported. None of these observations proves repair of the original intermittent boot failure or validates other board revisions, DIMM configurations or patch combinations.
+
+Finding confidence, offline code-validation confidence and physical repair confidence remain separate. The records' broad `hardware_tested`/physical-confidence flags have not been promoted on the basis of these limited observations.
+
+## MR9A stage 2 — 2026-11-08
+
+The cumulative selection was **B01-B06 + B02-B03 + B05 + B10 + B11 + R01**, on the same MR9A PRO V1.2 / Q87 with four 16 GB DDR4 DIMMs. The fresh stage-1 backup was patched and validated; flashrom verification and a separate full-chip readback matched the stage-2 image SHA-256 `1ecbe9b09619221556d16fa36427655ca2593ab13b2e4fd7c9b79334c45d03a1`.
+
+- The user reports that normal boots and cold boots passed **many times**, and that **offline memtest86 passed**. Exact boot-cycle counts, memory-test pass count, duration, executable version and test configuration were not supplied. Do not interpret this as a numerically verified ten-cycle campaign or four-pass result.
+- Linux boot evidence confirms a post-flash boot with the same PCI inventory and four populated 16 GB DIMMs. The reviewed kernel log has no matching machine-check, corrected/uncorrected-memory or I/O errors; captured EDAC corrected/uncorrected error counters are zero.
+- **R01's physical reporting result is observed:** all four DIMMs now report **72 total bits / 64 data bits**, replacing the previous 72/72 fields. This does not establish or change active ECC correction policy.
+- The boot logger retained one distinct stage-2 Linux boot at the review time; additional user-reported POST cycles and an offline memory test need not produce Linux captures. No warm/cold count is inferred from that logger.
+
+These are successful boot and memory-test compatibility observations for this cumulative image on this board. They do not separately validate every member's exceptional reset/SMM paths, every peripheral/wake function, other hardware configurations, or repair of the historical intermittent boot failure. No further firmware changes were made to collect these observations.

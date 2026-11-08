@@ -9,7 +9,7 @@ The two audited boards:
 
 Both were tested with a Xeon E5-2680 v4. Many similar boards share this code; [docs/porting.md](docs/porting.md) shows how to check yours.
 
-> **No patch here has been booted on real hardware.** Every change is checked offline: hashes, re-parsing and, in the original audit, execution of the patched code. None of that replaces a boot test. Only flash with an external programmer and a verified backup ([docs/flashing.md](docs/flashing.md)).
+> **MR9A hardware observations:** B01-B06 + B02-B03 passed initial normal/cold boots with unchanged reported timing. A later bundle adding B05, B10/B11 and R01 passed repeated normal/cold boots and an offline memory test, as reported by the user; R01's corrected 72/64-bit widths were observed in Linux. These results apply to one board/configuration and do not establish every firmware path or repair of intermittent failures. See [hardware test records](docs/hardware-tests.md) and [recovery requirements](docs/flashing.md).
 
 ## Quick start
 
@@ -52,7 +52,7 @@ Each finding, its confidence and what the fix doesn't cover are in [docs/defects
 
 ### Combining patches
 
-Patches combine freely unless they edit the same bytes. Each hunk checks its own original bytes, so the order doesn't matter, and applying patches one at a time gives the same image as applying them together. Three rules:
+Patches combine freely unless they edit the same bytes. Each hunk checks its own original bytes, so independent patches give the same component contents whether applied together or one at a time. Sequential builds can retain different compression padding and file positions, so their full ROM hashes can differ. For a reproducible ROM, apply the full selection to the same stock dump in one build. Three rules:
 
 - A patch that contains another supersedes it (B01-B04-B06-B08 contains B01-B06 and B08). If the smaller one is already in the ROM, it's upgraded.
 - Patches that overlap conflict (B04 vs B07; A02, A03 and A07 on the DSDT). `x99fix` refuses the combination.
@@ -65,7 +65,7 @@ Patches combine freely unless they edit the same bytes. Each hunk checks its own
 3. LZMA sections are recompressed with the original properties, and FFS checksums are recomputed.
 4. Same-size modules stay in place. If a compressed DXE file grows, the files after it move into the volume's free space.
 5. The packer refuses to move anything that runs from a fixed flash address: PEI modules, execute-in-place images, FIXED files, the volume top file, and PAD files that carry data.
-6. The output is parsed again, every selected patch must read `fixed`, and every byte outside the touched volumes must be unchanged.
+6. Input and output FFS header/data checksums are validated. The output is parsed again, every selected patch must read `fixed`, and every byte outside the touched volumes must be unchanged.
 
 ## Repository layout
 
@@ -79,6 +79,8 @@ Patches combine freely unless they edit the same bytes. Each hunk checks its own
 | `docs/` | Defects, POST codes, manual patching, flashing, porting, references |
 
 Vendor ROMs, extracted modules and datasheets are not included. Records hold only the changed bytes and 16 bytes of context around each change.
+
+An optional [MRC breadcrumb diagnostic](docs/boot-breadcrumbs.md) records the last full memory-training checkpoint in upper CMOS on the reviewed MR9A build. Its separate offline builder requires NASM; it is not part of the correction catalog and has not been tested on hardware.
 
 ## Tests
 

@@ -160,6 +160,15 @@ class HookTests(unittest.TestCase):
         bus = self.run_boots(GOOD, STUCK_B0, GOOD)
         self.assert_slot(bus, SLOT0, cp(0xB0, 2, 0x0001))
 
+    def test_all_four_bytes_are_written_even_for_a_zero_major(self):
+        # The diagnostic must not retain bytes from an older checkpoint when
+        # an unexpected/zero major arrives. Repeated-byte values also need four
+        # writes, so a rotate-until-equal loop would be insufficient.
+        for value in (0, 1, 0x100, 0x10000, 0x00123456, 0xB7B7B7B7, 0xFFFFFFFF):
+            with self.subTest(value=hex(value)):
+                bus = self.run_boots([cp(0xB0), cp(0xB7, 0x31, 0x302), value])
+                self.assert_slot(bus, SLOT0, value)
+
     def test_mrc_reset_pass_is_not_a_failure(self):
         bus = self.run_boots(GOOD, RESET, GOOD)
         self.assert_byte(bus, COUNT, 0)

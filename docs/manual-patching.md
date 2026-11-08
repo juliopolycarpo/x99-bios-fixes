@@ -60,7 +60,7 @@ For PEI modules, which are uncompressed and run in place, a same-size edit chang
 
 ## Manual-only patches: B01-B04-B06-B08 and B07-B08
 
-These grow UncoreInitPeim, by 3,072 and 2,144 bytes. UncoreInitPeim runs in place from flash, and the PEI volume on both boards has no free space. Fitting the bigger module means three steps:
+These grow UncoreInitPeim, by 3,168 and 2,240 bytes, including the [worker-safety guard](memory-guard.md). UncoreInitPeim runs in place from flash, and the PEI volume on both boards has no free space. Fitting the bigger module means three steps:
 
 1. Moving PEI modules into free space elsewhere in the volume. The PR9 PEI volume has a large erased PAD file; check your own layout with `./x99fix list`.
 2. Rebasing each moved module: applying its PE relocations and updating ImageBase to the new flash address.

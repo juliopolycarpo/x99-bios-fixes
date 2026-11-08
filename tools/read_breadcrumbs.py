@@ -74,7 +74,7 @@ def main() -> int:
     if not info['armed']:
         print(f"not armed (state {info['state']:#04x}): patched firmware not booted yet, or CMOS cleared")
         return 1
-    print(f"this boot: {describe(info['active'])}, pass ended: {info['pass_ended']}")
+    print(f"stored MRC pass: {describe(info['active'])}, pass ended: {info['pass_ended']}")
     saturated = ' (saturated)' if info['failures'] == 0xFF else ''
     print(f"failed MRC passes since arming: {info['failures']}{saturated}")
     if info['last_failure']:

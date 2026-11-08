@@ -200,11 +200,21 @@ def parse_files(buffer: bytes, start: int, end: int) -> tuple[list[FfsFile], int
         size = int.from_bytes(header[20:23], "little")
         header_size = 24
         if header[19] & FFS_ATTRIB_LARGE_FILE:
+            if cursor + 32 > end:
+                raise FirmwareError(f"FFS file at {cursor:#x}: truncated extended header")
             size = struct.unpack_from("<Q", buffer, cursor + 24)[0]
             header_size = 32
         if size < header_size or cursor + size > end:
             raise FirmwareError(f"FFS file at {cursor:#x}: size {size:#x} exceeds volume end {end:#x}")
         file = FfsFile(cursor, buffer[cursor:cursor + header_size], buffer[cursor + header_size:cursor + size])
+        # State and the data-checksum byte do not participate in the header sum.
+        if (sum(file.header) - file.header[17] - file.header[23]) & 0xFF:
+            raise FirmwareError(f"FFS file at {cursor:#x}: invalid header checksum")
+        if file.attributes & FFS_ATTRIB_CHECKSUM:
+            if (sum(file.body) + file.header[17]) & 0xFF:
+                raise FirmwareError(f"FFS file at {cursor:#x}: invalid data checksum")
+        elif file.header[17] != 0xAA:
+            raise FirmwareError(f"FFS file at {cursor:#x}: expected fixed data checksum 0xaa")
         if file.kind != FILE_PAD and file.kind not in (0x01,):
             file.sections = parse_sections(file.body)
         files.append(file)

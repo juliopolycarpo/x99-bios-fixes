@@ -4,6 +4,8 @@ import unittest
 
 from x99fix.pe import branch_fields, relocation_offsets
 from x99fix.uefi import compress_like, make_file
+from x99fix.uefi import FirmwareError, parse_files
+from fakes import NEXT_GUID, ffs
 
 
 def tiny_pe(fixup_rva: int) -> bytes:
@@ -34,6 +36,26 @@ class PeTests(unittest.TestCase):
 
 
 class UefiTests(unittest.TestCase):
+    def test_header_and_data_corruption_are_rejected(self):
+        for attributes in (0, 0x40):
+            good = ffs(NEXT_GUID, 1, b"payload", attributes)
+            self.assertEqual(parse_files(good, 0, len(good))[0][0].body, b"payload")
+            for offset in (0, 16, 17, 24) if attributes else (0, 16, 17):
+                damaged = bytearray(good)
+                damaged[offset] ^= 1
+                with self.subTest(attributes=attributes, offset=offset):
+                    with self.assertRaisesRegex(FirmwareError, "checksum"):
+                        parse_files(bytes(damaged), 0, len(damaged))
+
+    def test_extended_header_bytes_participate_in_checksum(self):
+        header = bytes(16) + bytes((0, 0, 1, 1)) + b"\xff\xff\xff\xf8" + bytes(8)
+        good = make_file(header, b"payload")
+        self.assertEqual(len(parse_files(good, 0, len(good))[0][0].header), 32)
+        damaged = bytearray(good)
+        damaged[24] -= 1  # Still bounded, but changes the extended-header sum.
+        with self.assertRaisesRegex(FirmwareError, "header checksum"):
+            parse_files(bytes(damaged), 0, len(damaged))
+
     def test_make_file_writes_valid_header_checksum(self):
         header = bytes(16) + bytes((0, 0, 7, 0)) + bytes(3) + b"\xf8"
         data = make_file(header, b"body")
