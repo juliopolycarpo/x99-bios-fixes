@@ -16,7 +16,7 @@ Both were tested with a Xeon E5-2680 v4. Many similar boards share this code; [d
 `x99fix` needs Python 3.10 or newer and nothing else:
 
 ```sh
-git clone https://github.com/<owner>/x99-bios-fixes && cd x99-bios-fixes
+git clone https://github.com/juliopolycarpo/x99-bios-fixes && cd x99-bios-fixes
 ./x99fix scan dump.bin
 ```
 
@@ -87,3 +87,9 @@ PYTHONPATH=src:tests python3 -m unittest discover -s tests
 # with stock dumps of the reference boards:
 X99FIX_ROM_MR9A=mr9a.bin X99FIX_ROM_PR9=pr9.bin PYTHONPATH=src:tests python3 -m unittest test_rom.RealRomTests
 ```
+
+## License
+
+MIT; see [LICENSE](LICENSE). `tools/ghidra/PeimUEFIHelper.java` and `tools/ghidra/ghidra-firmware-utils-12.2.patch` derive from ghidra-firmware-utils and stay under Apache-2.0; see [tools/ghidra/NOTICE](tools/ghidra/NOTICE).
+
+Patch records contain short excerpts of vendor firmware bytes, the original side of each change plus 16 bytes of context, so a patch can find and check its target. That vendor code isn't covered by this license.
