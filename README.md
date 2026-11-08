@@ -80,7 +80,7 @@ Patches combine freely unless they edit the same bytes. Each hunk checks its own
 
 Vendor ROMs, extracted modules and datasheets are not included. Records hold only the changed bytes and 16 bytes of context around each change.
 
-An optional [MRC breadcrumb diagnostic](docs/boot-breadcrumbs.md) records the last full memory-training checkpoint in upper CMOS on the reviewed MR9A build. Its separate offline builder requires NASM. It is outside the correction catalog; one initial physical boot and completed-pass logging check passed, while cold boots and failed-pass retention remain untested.
+An optional [MRC breadcrumb diagnostic](docs/boot-breadcrumbs.md) records the last full memory-training checkpoint in upper CMOS on the reviewed MR9A build. Its separate offline builder requires NASM. It is outside the correction catalog. Completed-pass logging has initial hardware evidence, but a deliberate no-RAM failure left no retained failed record after recovery; failed-boot capture remains unvalidated.
 
 ## Tests
 

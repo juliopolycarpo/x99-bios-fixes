@@ -1,6 +1,6 @@
 # MRC checkpoint breadcrumbs (offline diagnostic, revision 2)
 
-> **One initial physical boot and completed-pass logging check passed on the reviewed MR9A build.** Revision 2 was flashed with exact full-chip readback verification. After the user's reboot, Linux read `BF/00 location 0000`, ended, with zero failed passes. Cold boots and preservation of a failed pass across recovery remain untested. See [hardware observations](hardware-tests.md#mr9a-breadcrumb-diagnostic-revision-2--2026-11-08). It remains a separate diagnostic tool, outside the `x99fix` correction catalog.
+> **Completed-pass logging has initial hardware evidence; failed-boot retention is not validated.** Revision 2 was flashed with exact full-chip readback verification. The first boot read `BF/00 location 0000`, ended, with zero failed passes. A later all-DIMMs-removed test reached POST `53`; after restoring RAM without clearing CMOS or removing the battery, no failed record was retained. The cause is unresolved. See [hardware observations](hardware-tests.md#mr9a-breadcrumb-diagnostic-revision-2--2026-11-08). This remains a separate diagnostic tool, outside the `x99fix` correction catalog.
 
 When the MRC stops on `b0` or `b7`, nothing records where. The display shows only the major code, `B7` covers about 36 training steps, and the next boot overwrites the display. This patch keeps the full MRC checkpoint (major, minor, 16-bit location) in upper-bank CMOS. If a pass dies before it ends, the patch freezes that checkpoint so Linux can read it after the next good boot.
 

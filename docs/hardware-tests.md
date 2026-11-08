@@ -53,3 +53,22 @@ every setup setting, memory stability under a new test, or repair of the
 intermittent boot fault. The earlier stage-2 memory-test report predates this
 diagnostic. No additional reboot, CMOS-data write or firmware write was made
 while collecting the post-boot observations.
+
+### Subsequent all-DIMMs-removed test
+
+The user removed all four DIMMs and observed POST **`53`**. They explicitly
+report **no CMOS clear and no battery removal**. After RAM was restored, a second
+distinct post-flash Linux boot was observed. The raw `E0`–`E9` layout was
+identical to the first successful boot: `A1`, slot 0 containing `BF000000`, slot
+1 all `FF`, counter zero. No failed checkpoint was available. All four 16 GB
+DIMMs, their 72/64-bit widths and 2400 MT/s configuration were restored; PCI
+inventory matched, EDAC counters were zero, and no matching kernel hardware/
+memory/I/O error lines appeared in the captured recovery boot.
+
+This is a **negative result for capture of that no-RAM attempt**. It does not
+validate failed-pass freezing/retention. No CMOS snapshot exists from the halted
+attempt, so the evidence cannot distinguish a bypassed logging start/hook,
+inaccessible storage at that phase, or later overwrite/reset/rearming. Intentional
+CMOS clearing is excluded by the user's report; the root cause remains unresolved.
+The no-RAM halt does not reproduce or establish the cause of the intermittent
+`b0`/`b7` fault. No diagnostic code or flashed firmware was changed for this test.
