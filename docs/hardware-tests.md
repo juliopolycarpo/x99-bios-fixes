@@ -72,3 +72,20 @@ inaccessible storage at that phase, or later overwrite/reset/rearming. Intention
 CMOS clearing is excluded by the user's report; the root cause remains unresolved.
 The no-RAM halt does not reproduce or establish the cause of the intermittent
 `b0`/`b7` fault. No diagnostic code or flashed firmware was changed for this test.
+
+### Subsequent no-GPU `d6` test
+
+The user then reports a no-GPU attempt displaying **`d6`**, followed by another
+reboot, with no CMOS clear or battery removal. A third distinct post-flash Linux
+boot was captured after recovery. The RX 550 and all 64 GB are present, PCI
+inventory matches the baseline, EDAC counters are zero, and no matching kernel
+hardware/memory/I/O errors appear. CMOS again contains `A1`, completed
+`BF/00 location 0000`, failed-pass count zero.
+
+This is consistent with the diagnostic's **MRC-only boundary**. `BF` ends the
+tracked memory-initialization pass; `d6` is a later console-output condition in
+the board's [recorded POST sequence](post-codes.md). It is not expected to count
+as an unfinished MRC pass. The final snapshot may have been rewritten by the
+recovery boot, and no Linux boot from the no-GPU attempt itself was observed.
+This test does not validate failed-MRC freezing/retention or resolve the earlier
+missing no-RAM `53` record. No firmware change was made for this test.

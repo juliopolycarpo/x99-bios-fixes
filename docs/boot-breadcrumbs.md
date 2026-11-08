@@ -65,6 +65,11 @@ sudo python3 tools/read_breadcrumbs.py
 
 The reader uses ports 72h/73h only and writes nothing to CMOS. A CMOS clear erases the record, so after a stuck boot, recover with the DIMM or GPU change first and read the record before clearing CMOS.
 
+The logger ends the tracked pass at `BF`; later POST/console errors such as
+no-GPU `d6` are outside its scope. A completed `BF` record and zero failed MRC
+passes after a `d6` attempt are consistent with this boundary. That observation
+does not resolve the missing failed record in the separate no-RAM `53` test.
+
 ## Before flashing
 
 - Follow the [backup, programmer recovery and readback procedure](flashing.md). On the first test, confirm normal/cold boot, unchanged setup settings, and a readable completed MRC pass. Then check retention across another boot before using the logger to investigate a hang.
