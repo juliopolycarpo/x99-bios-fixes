@@ -1,0 +1,17 @@
+Third-party code in this directory
+
+PeimUEFIHelper.java
+  Modified copy of ghidra_scripts/UEFIHelper.java from ghidra-firmware-utils,
+  https://github.com/al3xtjames/ghidra-firmware-utils
+  Copyright 2019 Alex James <theracermaster@gmail.com>.
+  Licensed under the Apache License, Version 2.0 (LICENSE-Apache-2.0.txt).
+  The changes are listed in the file's header.
+
+ghidra-firmware-utils-12.2.patch
+  A patch to ghidra-firmware-utils (same copyright and license) that replaces
+  two TaskMonitor.checkCanceled() calls, removed in Ghidra 12.2, with
+  checkCancelled().
+
+ExportFirmware.java, ExportSelectedFirmware.java, SeedFirmwareCallbacks.java
+and SetupFirmwareMemory.java are original to this repository and fall under
+its license.

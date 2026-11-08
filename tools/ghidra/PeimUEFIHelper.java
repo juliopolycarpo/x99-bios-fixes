@@ -12,6 +12,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on ghidra_scripts/UEFIHelper.java from ghidra-firmware-utils
+ * (https://github.com/al3xtjames/ghidra-firmware-utils, commit 2361aa83),
+ * Copyright 2019 Alex James. Licensed under the Apache License 2.0; see
+ * LICENSE-Apache-2.0.txt in this directory.
+ *
+ * Modified for x99-bios-fixes:
+ * - renamed the class from UEFIHelper to PeimUEFIHelper;
+ * - read the extension data directory from the first script argument;
+ * - give 32-bit (PEI) modules a PEIM entry-point signature taking
+ *   EFI_PEI_SERVICES instead of the DXE EFI_SYSTEM_TABLE signature;
+ * - skip entry-point propagation when decompilation fails.
  */
 //UEFI helper script
 
