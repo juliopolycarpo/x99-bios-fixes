@@ -1,6 +1,6 @@
 # MRC checkpoint breadcrumbs (offline diagnostic, revision 2)
 
-> **Ready for a controlled first hardware test on the reviewed MR9A build.** Revision 2 passes component emulation, execution through the surrounding firmware function, same-size ROM packing and independent extraction. It has not been flashed or booted. It remains a separate diagnostic tool, outside the `x99fix` correction catalog.
+> **One initial physical boot and completed-pass logging check passed on the reviewed MR9A build.** Revision 2 was flashed with exact full-chip readback verification. After the user's reboot, Linux read `BF/00 location 0000`, ended, with zero failed passes. Cold boots and preservation of a failed pass across recovery remain untested. See [hardware observations](hardware-tests.md#mr9a-breadcrumb-diagnostic-revision-2--2026-11-08). It remains a separate diagnostic tool, outside the `x99fix` correction catalog.
 
 When the MRC stops on `b0` or `b7`, nothing records where. The display shows only the major code, `B7` covers about 36 training steps, and the next boot overwrites the display. This patch keeps the full MRC checkpoint (major, minor, 16-bit location) in upper-bank CMOS. If a pass dies before it ends, the patch freezes that checkpoint so Linux can read it after the next good boot.
 
@@ -36,7 +36,7 @@ Revision 1 stopped its copy loop when the shifted checkpoint became zero. An une
 
 A pass starts at checkpoint `B0/00` and ends at `BF` (MRC done) or `AF` (MRC reset request, such as the frequency-change reset after a DIMM swap). If a new pass starts while the previous one never ended, the patch switches slots, which freezes the dead pass's record, and increments the count. Nothing is recorded after a pass ends.
 
-On the reviewed MR9A, `E0`–`E9` read `FF`. AMI's CmosPei uses the same ports (72h/73h) and the same `80`–`FF` logical indexing. This snapshot alone does not establish exclusive ownership.
+Before flashing the diagnostic, `E0`–`E9` read `FF` on the reviewed MR9A. AMI's CmosPei uses the same ports (72h/73h) and the same `80`–`FF` logical indexing. This snapshot alone does not establish exclusive ownership.
 
 The previously open CmosManager questions are resolved for this firmware:
 
