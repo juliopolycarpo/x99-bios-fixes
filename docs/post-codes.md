@@ -48,3 +48,5 @@ On the tested MR9A, the stuck state also survives these:
 It moves when a DIMM or the GPU is moved; USB and SATA changes don't affect it. No firmware state found in the audit survives an AC drain and reacts to a GPU change. On that board, a physical cause ranks first: socket contact, cooler pressure, board flex or power delivery.
 
 The SPD defects (B01–B04) and the unbounded mailbox waits (H11) can still turn a marginal hardware condition into a hang instead of an error. B01-B06 is the patch that would show this: with it, a stuck SPD bus produces an error code where the stock firmware freezes on `b0`.
+
+To find out which MRC step a stuck boot stopped in, see the [checkpoint breadcrumbs sketch](boot-breadcrumbs.md). It keeps the last checkpoint of a failed pass in CMOS so it can be read after the next good boot.
