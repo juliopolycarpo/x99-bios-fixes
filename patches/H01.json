@@ -1,0 +1,52 @@
+{
+ "schema": 1,
+ "id": "H01",
+ "title": "Clear MR9A's documented Super I/O test-mode bit",
+ "findings": [
+  "H01"
+ ],
+ "finding_confidence": {
+  "H01": "C1"
+ },
+ "local_fix_confidence": "C1",
+ "physical_fix_confidence": "C2",
+ "hardware_tested": false,
+ "tier": "hold",
+ "supersedes": [],
+ "conflicts": [],
+ "limits": "HOLD: physical package, wiring and possible vendor workaround are unresolved. Native I/O execution proves the one-bit difference, not pin behavior or safe physical deployment.",
+ "boards": {
+  "mr9a": {
+   "applicable": true,
+   "components": [
+    {
+     "name": "NCT5532DPeiInit",
+     "ffs_guid": "9029F23E-E1EE-40D1-9382-36DD61A63EAA",
+     "leaf": "pe32",
+     "source_sha256": "ac8cf5be93fc018e115418cad5fd635f3f52c6c2d327c195dd324fae61a144e1",
+     "source_size": 2144,
+     "result_sha256": "67bae0ab3d53ae9728fca4d99b99b71ac2e31f96323505c1e67355885cb8a609",
+     "result_size": 2144,
+     "hunks": [
+      {
+       "offset": 551,
+       "before": "02",
+       "after": "00",
+       "context_before": "002e0000872e0000872e00002f2f00bd",
+       "context_after": "2e00001a2f003f002e00001b2f00ef10",
+       "findings": [
+        "H01"
+       ],
+       "wild_before": [],
+       "wild_after": []
+      }
+     ]
+    }
+   ]
+  },
+  "pr9": {
+   "applicable": false,
+   "reason": "The PR9 source already clears TEST_MODE1 at this initialization row."
+  }
+ }
+}

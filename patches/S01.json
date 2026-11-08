@@ -1,0 +1,111 @@
+{
+ "schema": 1,
+ "id": "S01",
+ "title": "Skip PR9's cold-boot ME/UMA completion notification on S3 restoration",
+ "findings": [
+  "S01"
+ ],
+ "finding_confidence": {
+  "S01": "C2"
+ },
+ "local_fix_confidence": "C2",
+ "physical_fix_confidence": "C2",
+ "hardware_tested": false,
+ "tier": 2,
+ "supersedes": [],
+ "conflicts": [],
+ "limits": "PR9 resume hypothesis, C2. Preserves the ordinary-boot call. New stub extends VirtualSize inside existing raw padding. The failed resume has not been traced reaching the helper.",
+ "boards": {
+  "pr9": {
+   "applicable": true,
+   "components": [
+    {
+     "name": "UncoreInitPeim",
+     "ffs_guid": "D71C8BA4-4AF2-4D0D-B1BA-F2409F0C20D3",
+     "leaf": "pe32",
+     "source_sha256": "a645b2ea89779bcc66bfc96581aebb686aa9a6a15e7b6b232e333b292e59ed42",
+     "source_size": 605920,
+     "result_sha256": "917a0ad078fcc1da9e6e9a81abb4a9e0ceba5b9f9652f85f642c5e00242bd09d",
+     "result_size": 605920,
+     "hunks": [
+      {
+       "offset": 464,
+       "before": "c8",
+       "after": "d7",
+       "context_before": "00000000000000002e74657874000000",
+       "context_after": "26090020020000e02609002002000000",
+       "findings": [
+        "S01"
+       ],
+       "wild_before": [],
+       "wild_after": []
+      },
+      {
+       "offset": 588646,
+       "before": "f7e3ffff",
+       "after": "7e2d0000",
+       "context_before": "c8750756e8a80a0000595fff750c56e8",
+       "context_after": "59595e5bc9c3558bec83ec485333db57",
+       "findings": [
+        "S01"
+       ],
+       "wild_before": [
+        5,
+        6,
+        7,
+        8,
+        16,
+        17,
+        18,
+        19
+       ],
+       "wild_after": [
+        5,
+        6,
+        7,
+        8,
+        16,
+        17,
+        18,
+        19
+       ]
+      },
+      {
+       "offset": 600296,
+       "before": "0000000000",
+       "after": "83becc2002",
+       "context_before": "00000000000000000000000000000000",
+       "context_after": "00000000000000000000000000000000",
+       "findings": [
+        "S01"
+       ],
+       "wild_before": [],
+       "wild_after": []
+      },
+      {
+       "offset": 600302,
+       "before": "000000000000000000",
+       "after": "017405e96bb6ffffc3",
+       "context_before": "00000000000000000000000000000000",
+       "context_after": "00000000000000000000000000700100",
+       "findings": [
+        "S01"
+       ],
+       "wild_before": [],
+       "wild_after": [
+        20,
+        21,
+        22,
+        23
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "mr9a": {
+   "applicable": false,
+   "reason": "The MR9A source already excludes this ME helper during S3 restoration."
+  }
+ }
+}

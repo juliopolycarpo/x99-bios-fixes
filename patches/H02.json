@@ -1,0 +1,76 @@
+{
+ "schema": 1,
+ "id": "H02",
+ "title": "Select the apparent Super I/O table index literally",
+ "findings": [
+  "H02"
+ ],
+ "finding_confidence": {
+  "H02": "C1"
+ },
+ "local_fix_confidence": "C0",
+ "physical_fix_confidence": "C2",
+ "hardware_tested": false,
+ "tier": "hold",
+ "supersedes": [],
+ "conflicts": [],
+ "limits": "HOLD: literal indexing is corrected, but the apparent CR1C target is reserved in the reviewed datasheet. Determine the intended register/value before any physical deployment.",
+ "boards": {
+  "pr9": {
+   "applicable": true,
+   "components": [
+    {
+     "name": "NCT5532DPeiInit",
+     "ffs_guid": "9029F23E-E1EE-40D1-9382-36DD61A63EAA",
+     "leaf": "pe32",
+     "source_sha256": "26bb518a974c6092d9996b8ed6ecbdc4294a6c39b0e73e50ed2624666978e1ee",
+     "source_size": 2240,
+     "result_sha256": "21661c3822bf27a204dbc284331cf1564d94990ac24fa37f1533bea658d20b1b",
+     "result_size": 2240,
+     "hunks": [
+      {
+       "offset": 586,
+       "before": "ff",
+       "after": "00",
+       "context_before": "001b2f00ef102e00002a2f00e4082e00",
+       "context_after": "1c2f00e7082e00001d2f00fe002e0000",
+       "findings": [
+        "H02"
+       ],
+       "wild_before": [],
+       "wild_after": []
+      }
+     ]
+    }
+   ]
+  },
+  "mr9a": {
+   "applicable": true,
+   "components": [
+    {
+     "name": "NCT5532DPeiInit",
+     "ffs_guid": "9029F23E-E1EE-40D1-9382-36DD61A63EAA",
+     "leaf": "pe32",
+     "source_sha256": "ac8cf5be93fc018e115418cad5fd635f3f52c6c2d327c195dd324fae61a144e1",
+     "source_size": 2144,
+     "result_sha256": "b7c697a149aec994289387e00de6895c68b724c4379647ad88fe25a84cf6785c",
+     "result_size": 2144,
+     "hunks": [
+      {
+       "offset": 578,
+       "before": "ff",
+       "after": "00",
+       "context_before": "001b2f00ef102e00002a2f00e4082e00",
+       "context_after": "1c2f00e7082e00001d2f00fe002e0000",
+       "findings": [
+        "H02"
+       ],
+       "wild_before": [],
+       "wild_after": []
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
