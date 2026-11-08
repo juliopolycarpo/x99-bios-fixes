@@ -1,0 +1,13 @@
+# Firmware images and extracted modules are vendor code: keep them out.
+*.bin
+*.rom
+*.cap
+*.fd
+*.pe
+*.efi
+*.aml
+*.manifest.json
+dumps/
+work/
+__pycache__/
+*.pyc
